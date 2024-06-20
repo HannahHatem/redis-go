@@ -3,10 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/codecrafters-io/redis-starter-go/resp"
 	"log"
 	"net"
 	"os"
+
+	"github.com/codecrafters-io/redis-starter-go/resp"
+	// "strings"
 )
 
 var listen = flag.String("listen", ":6379", "listen address")
@@ -16,13 +18,11 @@ func main() {
 	fmt.Println("Logs from your program will appear here!")
 
 	flag.Parse()
-	// start()
-	// cmd := "*2\r\n$4\r\nECHO\r\n$9\r\nblueberry\r\n"
-	cmd := "+PONG\r\n"
-	byteArray := []byte(cmd)
-	fmt.Println("byteArray: ", byteArray)
-	ans := resp.StartDeserializeParser(byteArray)
-	fmt.Println(ans)
+	start()
+	// cmd := "*2\r\n$4\r\nECHO\r\n$3\r\nhey\r\n"
+	// byteArray := []byte(cmd)
+	// fmt.Println("byteArray: ", byteArray)
+	// resp.StartDeserializeParser(byteArray)
 }
 
 func start() {
@@ -56,7 +56,19 @@ func handleConnection(c net.Conn) {
 
 		log.Printf("received from c.Read(buf): %s", buf)
 
-		_, err = c.Write([]byte("+PONG\r\n"))
+		// Deserialize the byte array
+		ans := resp.StartDeserializeParser(buf)
+		if ans == nil {
+			fmt.Println("Error deserializing byte array.")
+			return
+		}
+
+		if ans[0] == "PING" {
+			_, err = c.Write([]byte("+PONG\r\n"))
+		} else {
+			_, err = c.Write([]byte(fmt.Sprintf("$%d\r\n%s\r\n", len(ans[1]), ans[1])))
+		}
+
 		if err != nil {
 			fmt.Println("Error writing to connection c.Write()", err.Error())
 			return
