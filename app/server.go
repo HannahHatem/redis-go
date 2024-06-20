@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/codecrafters-io/redis-starter-go/resp"
 	"log"
 	"net"
 	"os"
@@ -15,8 +16,13 @@ func main() {
 	fmt.Println("Logs from your program will appear here!")
 
 	flag.Parse()
-
-	start()
+	// start()
+	// cmd := "*2\r\n$4\r\nECHO\r\n$9\r\nblueberry\r\n"
+	cmd := "+PONG\r\n"
+	byteArray := []byte(cmd)
+	fmt.Println("byteArray: ", byteArray)
+	ans := resp.StartDeserializeParser(byteArray)
+	fmt.Println(ans)
 }
 
 func start() {
