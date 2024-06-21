@@ -59,12 +59,22 @@ func handleConnection(c net.Conn) {
 		// Deserialize the byte array
 		ans := resp.StartDeserializeParser(buf)
 		if ans == nil {
-			fmt.Println("Error deserializing byte array.")
+			log.Println("Error deserializing byte array.")
+			return
+		} else if len(ans) == 0 {
+			log.Println("Error,  byte array is empty.")
 			return
 		}
 
 		if ans[0] == "PING" {
-			_, err = c.Write([]byte("+PONG\r\n"))
+			wrapedPong := resp.WrapSimpleStringRESP("PONG")
+			_, err = c.Write([]byte(wrapedPong))
+		} else if ans[0] == "SET" {
+			setResult := SetMap(ans[1], ans[2])
+			_, err = c.Write([]byte(setResult))
+		} else if ans[0] == "GET" {
+			getResult := GetMap(ans[1])
+			_, err = c.Write([]byte(getResult))
 		} else {
 			_, err = c.Write([]byte(fmt.Sprintf("$%d\r\n%s\r\n", len(ans[1]), ans[1])))
 		}

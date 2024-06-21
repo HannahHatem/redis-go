@@ -1,11 +1,12 @@
 package resp
 
 import (
-	// "fmt"
+	"fmt"
 	// "reflect"
 	// "sort"
 	"strconv"
 	// "strings"
+	"log"
 )
 
 const (
@@ -48,17 +49,36 @@ func DeserializeArray(byteArray []byte) []string {
 			end := start + intValue
 			ans = append(ans, string(byteArray[start:end]))
 			i = end
-		} else if byteArray[i] == SimpleString {
-			i++
-			var temp []byte
-			for byteArray[i] != '\r' {
-				temp = append(temp, byteArray[i])
-				i++
+		} else if byteArray[i] == Integer {
+			index, err := DeserializeInteger(byteArray, i, ans)
+			if err != nil {
+				log.Println("Error deserializing integer: ", err)
+				return []string{}
 			}
-			ans = append(ans, string(temp))
+			i = index
 		}
 	}
 	return ans
+}
+
+func DeserializeInteger(byteArray []byte, index int, ans []string) (int, error) {
+	if len(byteArray) == 0 || byteArray[0] != ':' {
+		return 0, fmt.Errorf("invalid RESP integer format")
+	}
+
+	var temp []byte
+	i := index
+	for i = index; i < len(byteArray); i++ {
+		if byteArray[i] != '\r' {
+			temp = append(temp, byteArray[i])
+		} else if byteArray[i] == '\r' {
+			valueStr := string(temp)
+			ans = append(ans, valueStr)
+			return i, fmt.Errorf("invalid RESP integer format")
+		}
+	}
+
+	return i, nil
 }
 
 func DeserializeSimpleString(byteArray []byte) []string {
@@ -74,4 +94,20 @@ func DeserializeSimpleString(byteArray []byte) []string {
 	ans = append(ans, string(temp))
 
 	return ans
+}
+
+// Wrapers
+func WrapSimpleStringRESP(simpleString string) string {
+	if len(simpleString) == 0 {
+		return ""
+	}
+	return "+" + simpleString + "\r\n"
+}
+
+func WrapBulkStringRESP(s string) string {
+	return "$" + strconv.Itoa(len(s)) + "\r\n" + s + "\r\n"
+}
+
+func GetNullBulkStringRESP() string {
+	return "$-1\r\n"
 }
