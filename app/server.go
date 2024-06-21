@@ -3,26 +3,20 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/codecrafters-io/redis-starter-go/resp"
 	"log"
 	"net"
 	"os"
-
-	"github.com/codecrafters-io/redis-starter-go/resp"
-	// "strings"
+	"strings"
 )
 
 var listen = flag.String("listen", ":6379", "listen address")
 
 func main() {
-	// You can use print statements as follows for debugging, they'll be visible when running tests.
 	fmt.Println("Logs from your program will appear here!")
 
 	flag.Parse()
 	start()
-	// cmd := "*2\r\n$4\r\nECHO\r\n$3\r\nhey\r\n"
-	// byteArray := []byte(cmd)
-	// fmt.Println("byteArray: ", byteArray)
-	// resp.StartDeserializeParser(byteArray)
 }
 
 func start() {
@@ -69,13 +63,18 @@ func handleConnection(c net.Conn) {
 		if ans[0] == "PING" {
 			wrapedPong := resp.WrapSimpleStringRESP("PONG")
 			_, err = c.Write([]byte(wrapedPong))
-		} else if ans[0] == "SET" {
-			setResult := SetMap(ans[1], ans[2])
+		} else if strings.ToUpper(ans[0]) == "SET" {
+			setResult := ""
+			if len(ans) < 4 {
+				setResult = SetMap(ans[1], ans[2], "")
+			} else {
+				setResult = SetMap(ans[1], ans[2], ans[4])
+			}
 			_, err = c.Write([]byte(setResult))
-		} else if ans[0] == "GET" {
+		} else if strings.ToUpper(ans[0]) == "GET" {
 			getResult := GetMap(ans[1])
 			_, err = c.Write([]byte(getResult))
-		} else {
+		} else if strings.ToUpper(ans[0]) == "ECHO" {
 			_, err = c.Write([]byte(fmt.Sprintf("$%d\r\n%s\r\n", len(ans[1]), ans[1])))
 		}
 

@@ -50,7 +50,7 @@ func DeserializeArray(byteArray []byte) []string {
 			ans = append(ans, string(byteArray[start:end]))
 			i = end
 		} else if byteArray[i] == Integer {
-			index, err := DeserializeInteger(byteArray, i, ans)
+			index, err := DeserializeInteger(byteArray, i, &ans)
 			if err != nil {
 				log.Println("Error deserializing integer: ", err)
 				return []string{}
@@ -61,24 +61,25 @@ func DeserializeArray(byteArray []byte) []string {
 	return ans
 }
 
-func DeserializeInteger(byteArray []byte, index int, ans []string) (int, error) {
-	if len(byteArray) == 0 || byteArray[0] != ':' {
+func DeserializeInteger(byteArray []byte, index int, ans *[]string) (int, error) {
+	if len(byteArray) == 0 || byteArray[index] != ':' {
 		return 0, fmt.Errorf("invalid RESP integer format")
 	}
 
 	var temp []byte
-	i := index
-	for i = index; i < len(byteArray); i++ {
+
+	for i := (index + 1); i < len(byteArray); i++ {
 		if byteArray[i] != '\r' {
 			temp = append(temp, byteArray[i])
 		} else if byteArray[i] == '\r' {
 			valueStr := string(temp)
-			ans = append(ans, valueStr)
-			return i, fmt.Errorf("invalid RESP integer format")
+			fmt.Println("temp: ", valueStr)
+			*ans = append(*ans, valueStr)
+			return i, nil
 		}
 	}
 
-	return i, nil
+	return index, nil
 }
 
 func DeserializeSimpleString(byteArray []byte) []string {
