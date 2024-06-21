@@ -79,6 +79,8 @@ func handleConnection(c net.Conn) {
 			_, err = c.Write([]byte(getResult))
 		} else if strings.ToUpper(ans[0]) == "ECHO" {
 			_, err = c.Write([]byte(fmt.Sprintf("$%d\r\n%s\r\n", len(ans[1]), ans[1])))
+		} else if strings.ToUpper(ans[0]) == "INFO" {
+			_, err = c.Write([]byte(resp.WrapBulkStringRESP("role:master")))
 		}
 
 		if err != nil {
