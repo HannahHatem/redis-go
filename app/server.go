@@ -3,14 +3,16 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/codecrafters-io/redis-starter-go/resp"
 	"log"
 	"net"
 	"os"
 	"strings"
+
+	"github.com/codecrafters-io/redis-starter-go/resp"
 )
 
-var listen = flag.String("listen", ":6379", "listen address")
+// var listen = flag.String("listen", ":6379", "listen address")
+var port = flag.String("port", "6379", "address to listen to")
 
 func main() {
 	fmt.Println("Logs from your program will appear here!")
@@ -20,13 +22,14 @@ func main() {
 }
 
 func start() {
-	l, err := net.Listen("tcp", *listen)
+	// l, err := net.Listen("tcp", *listen)
+	l, err := net.Listen("tcp", fmt.Sprintf(":%s", *port))
 	if err != nil {
 		fmt.Println("Failed to bind to port 6379", err.Error())
 		os.Exit(1)
 	}
 	defer l.Close()
-	fmt.Println("Listening on port", *listen)
+	fmt.Println("Listening on port", fmt.Sprintf(":%s", *port))
 	for {
 		c, err := l.Accept()
 		if err != nil {
