@@ -57,6 +57,7 @@ func GetMap(key string) string {
 	}
 
 	if time.Now().After(value.startTime.Add(value.span)) {
+		delete(cache, key)
 		return resp.GetNullBulkStringRESP()
 	}
 
