@@ -15,6 +15,8 @@ import (
 // var listen = flag.String("listen", ":6379", "listen address")
 var port = flag.String("port", "6379", "address to listen to")
 var replicaOf = flag.String("replicaof", "", "Replicate to another redis server")
+var MasterReplIdValue = "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb"
+var MasterReplOffsetValue = "0"
 
 func main() {
 	fmt.Println("Logs from your program will appear here!")
@@ -115,6 +117,7 @@ func handleConnection(c net.Conn) {
 			return
 		}
 
+		// Master server
 		cmdResult := handleCommand(ans)
 		if cmdResult != "" {
 			_, err = c.Write([]byte(cmdResult))
@@ -137,6 +140,12 @@ func handleCommand(ans []string) string {
 	case "PING":
 		wrappedPong := resp.WrapSimpleStringRESP("PONG")
 		return wrappedPong
+	case "REPLCONF":
+		wrappedReplConf := resp.WrapSimpleStringRESP("OK")
+		return wrappedReplConf
+	case "PSYNC":
+		psyncResult := PsyncCommand(ans)
+		return psyncResult
 	case "SET":
 		setResult := SetCommand(ans)
 		return setResult

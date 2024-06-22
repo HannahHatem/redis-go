@@ -7,12 +7,23 @@ import (
 	"github.com/codecrafters-io/redis-starter-go/resp"
 )
 
+func PsyncCommand(ans []string) string {
+	log.Println("Psync command called")
+
+	if ans[1] == "?" {
+		fullResync := "FULLRESYNC " + MasterReplIdValue + " 0\r\n"
+		return resp.WrapSimpleStringRESP(fullResync)
+	}
+
+	return resp.GetNullBulkStringRESP()
+}
+
 func InfoCommand(section string, replicaPort string) string {
 	log.Println("Info command called with section: ", section)
 
 	infoResultResp := ""
-	masterReplID := "master_replid:8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb\r\n"
-	masterReplOffset := "master_repl_offset:0\r\n"
+	masterReplID := "master_replid:" + MasterReplIdValue + "\r\n"
+	masterReplOffset := "master_repl_offset:" + MasterReplOffsetValue + "\r\n"
 	roleInfo := "role:master"
 
 	if strings.ToLower(section) == "replication" {
