@@ -3,13 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/codecrafters-io/redis-starter-go/resp"
 	"log"
 	"net"
 	"os"
 	"strings"
 	"time"
-
-	"github.com/codecrafters-io/redis-starter-go/resp"
 )
 
 // var listen = flag.String("listen", ":6379", "listen address")
