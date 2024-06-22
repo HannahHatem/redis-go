@@ -3,11 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/codecrafters-io/redis-starter-go/resp"
 	"log"
 	"net"
 	"os"
 	"strings"
+	"time"
+
+	"github.com/codecrafters-io/redis-starter-go/resp"
 )
 
 // var listen = flag.String("listen", ":6379", "listen address")
@@ -35,18 +37,31 @@ func sendHandshake() {
 		}
 
 		defer conn.Close()
-		// _, err = conn.Write([]byte(fmt.Sprintf("REPLCONF listening-port %s\r\n", *port)))
-		// if err != nil {
-		// 	log.Println("Failed to send handshake", err.Error())
-		// 	os.Exit(1)
-		// }
 
 		sendPing := []string{"PING"}
 		_, err = conn.Write([]byte(resp.WrapArrayRESP(sendPing)))
 		if err != nil {
+			log.Println("Failed to PING send handshake", err.Error())
+			os.Exit(1)
+		}
+
+		// Sleep for 1 second to give the replicaOf server time to respond
+		time.Sleep(1 * time.Second)
+		replConf1 := []string{"REPLCONF", "listening-port", *port}
+		_, err = conn.Write([]byte(resp.WrapArrayRESP(replConf1)))
+		if err != nil {
+			log.Println("Failed to REPLCONF1 send handshake", err.Error())
+			os.Exit(1)
+		}
+
+		time.Sleep(1 * time.Second)
+		replConf2 := []string{"REPLCONF", "capa", "eof"}
+		_, err = conn.Write([]byte(resp.WrapArrayRESP(replConf2)))
+		if err != nil {
 			log.Println("Failed to send handshake", err.Error())
 			os.Exit(1)
 		}
+		time.Sleep(1 * time.Second)
 	}
 }
 
