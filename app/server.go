@@ -87,15 +87,10 @@ func handleCommand(ans []string) string {
 		wrappedPong := resp.WrapSimpleStringRESP("PONG")
 		return wrappedPong
 	case "SET":
-		setResult := ""
-		if len(ans) < 4 {
-			setResult = SetMap(ans[1], ans[2], "")
-		} else {
-			setResult = SetMap(ans[1], ans[2], ans[4])
-		}
+		setResult := SetCommand(ans)
 		return setResult
 	case "GET":
-		getResult := GetMap(ans[1])
+		getResult := GetCommand(ans)
 		return getResult
 	case "ECHO":
 		return resp.WrapBulkStringRESP(ans[1])

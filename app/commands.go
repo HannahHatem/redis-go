@@ -18,3 +18,18 @@ func InfoCommand(section string, replicaPort string) string {
 	}
 	return resp.GetNullBulkStringRESP()
 }
+
+func SetCommand(ans []string) string {
+	setResult := ""
+	if len(ans) < 4 {
+		setResult = SetMap(ans[1], ans[2], "")
+	} else {
+		setResult = SetMap(ans[1], ans[2], ans[4])
+	}
+	return setResult
+}
+
+func GetCommand(ans []string) string {
+	getResult := GetMap(ans[1])
+	return getResult
+}
