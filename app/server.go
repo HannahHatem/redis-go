@@ -61,6 +61,14 @@ func sendHandshake() {
 			log.Println("Failed to send handshake", err.Error())
 			os.Exit(1)
 		}
+
+		time.Sleep(1 * time.Second)
+		psync := []string{"PSYNC", "?", "-1"}
+		_, err = conn.Write([]byte(resp.WrapArrayRESP(psync)))
+		if err != nil {
+			log.Println("Failed to send handshake", err.Error())
+			os.Exit(1)
+		}
 		time.Sleep(1 * time.Second)
 	}
 }
