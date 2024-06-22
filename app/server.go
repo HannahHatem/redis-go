@@ -13,6 +13,7 @@ import (
 
 // var listen = flag.String("listen", ":6379", "listen address")
 var port = flag.String("port", "6379", "address to listen to")
+var replicaOf = flag.String("replicaof", "", "Replicate to another redis server")
 
 func main() {
 	fmt.Println("Logs from your program will appear here!")
@@ -63,29 +64,45 @@ func handleConnection(c net.Conn) {
 			return
 		}
 
-		if ans[0] == "PING" {
-			wrapedPong := resp.WrapSimpleStringRESP("PONG")
-			_, err = c.Write([]byte(wrapedPong))
-		} else if strings.ToUpper(ans[0]) == "SET" {
-			setResult := ""
-			if len(ans) < 4 {
-				setResult = SetMap(ans[1], ans[2], "")
-			} else {
-				setResult = SetMap(ans[1], ans[2], ans[4])
+		cmdResult := handleCommand(ans)
+		if cmdResult != "" {
+			_, err = c.Write([]byte(cmdResult))
+			if err != nil {
+				fmt.Println("Error writing to connection c.Write()", err.Error())
+				return
 			}
-			_, err = c.Write([]byte(setResult))
-		} else if strings.ToUpper(ans[0]) == "GET" {
-			getResult := GetMap(ans[1])
-			_, err = c.Write([]byte(getResult))
-		} else if strings.ToUpper(ans[0]) == "ECHO" {
-			_, err = c.Write([]byte(fmt.Sprintf("$%d\r\n%s\r\n", len(ans[1]), ans[1])))
-		} else if strings.ToUpper(ans[0]) == "INFO" {
-			_, err = c.Write([]byte(resp.WrapBulkStringRESP("role:master")))
-		}
-
-		if err != nil {
-			fmt.Println("Error writing to connection c.Write()", err.Error())
+		} else if cmdResult == "" {
+			log.Println("Error, command result is empty.")
 			return
 		}
+
+	}
+}
+
+func handleCommand(ans []string) string {
+	command := strings.ToUpper(ans[0])
+
+	switch command {
+	case "PING":
+		wrappedPong := resp.WrapSimpleStringRESP("PONG")
+		return wrappedPong
+	case "SET":
+		setResult := ""
+		if len(ans) < 4 {
+			setResult = SetMap(ans[1], ans[2], "")
+		} else {
+			setResult = SetMap(ans[1], ans[2], ans[4])
+		}
+		return setResult
+	case "GET":
+		getResult := GetMap(ans[1])
+		return getResult
+	case "ECHO":
+		return resp.WrapBulkStringRESP(ans[1])
+	case "INFO":
+		info := InfoCommand(ans[1], *replicaOf)
+		return info
+	default:
+		return resp.WrapBulkStringRESP("ERR unknown command")
 	}
 }

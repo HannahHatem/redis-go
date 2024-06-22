@@ -4,9 +4,9 @@ import (
 	"fmt"
 	// "reflect"
 	// "sort"
-	"strconv"
-	// "strings"
 	"log"
+	"strconv"
+	"strings"
 )
 
 const (
@@ -41,11 +41,14 @@ func DeserializeArray(byteArray []byte) []string {
 		return []string{}
 	}
 
+	strByteArray := string(byteArray)
 	for i := 4; i < len(byteArray); i++ {
 		if byteArray[i] == BulkString {
-			length := string(byteArray[i+1])
+			// log.Println("Desrializng : ", string(byteArray[i:]))
+			index := strings.Index(strByteArray[i:], "\r\n")
+			length := string(byteArray[i+1 : i+index])
 			intValue, _ := strconv.Atoi(length)
-			start := i + 4
+			start := i + 3 + len(length)
 			end := start + intValue
 			ans = append(ans, string(byteArray[start:end]))
 			i = end
