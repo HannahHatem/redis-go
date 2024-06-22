@@ -2,21 +2,26 @@ package main
 
 import (
 	// "fmt"
-	"github.com/codecrafters-io/redis-starter-go/resp"
 	"log"
 	"os"
 	"strconv"
+	"sync"
 	"time"
+
+	"github.com/codecrafters-io/redis-starter-go/resp"
 )
 
-type CacheValue struct {
+type cacheValue struct {
 	value         string
 	startTime     time.Time
 	span          time.Duration
 	hasExpiration bool
 }
 
-var cache = make(map[string]CacheValue)
+var redisStore = struct {
+	sync.RWMutex
+	cache map[string]cacheValue
+}{cache: make(map[string]cacheValue)}
 
 func SetMap(key string, value string, strSpan string) string {
 	expCheck := false
@@ -35,18 +40,23 @@ func SetMap(key string, value string, strSpan string) string {
 		milliseconds = time.Duration(mills) * time.Millisecond
 	}
 
-	cache[key] = CacheValue{
+	redisStore.RWMutex.Lock()
+	redisStore.cache[key] = cacheValue{
 		value:         value,
 		startTime:     time.Now(),
 		span:          milliseconds,
 		hasExpiration: expCheck,
 	}
+	redisStore.RWMutex.Unlock()
 
 	return resp.WrapSimpleStringRESP("OK")
 }
 
 func GetMap(key string) string {
-	value, exists := cache[key]
+	redisStore.RWMutex.RLock()
+
+	value, exists := redisStore.cache[key]
+	redisStore.RWMutex.RUnlock()
 
 	if !exists {
 		return resp.GetNullBulkStringRESP()
@@ -57,7 +67,10 @@ func GetMap(key string) string {
 	}
 
 	if time.Now().After(value.startTime.Add(value.span)) {
-		delete(cache, key)
+		redisStore.RWMutex.Lock()
+		delete(redisStore.cache, key)
+		redisStore.RWMutex.Unlock()
+
 		return resp.GetNullBulkStringRESP()
 	}
 
