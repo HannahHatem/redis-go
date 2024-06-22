@@ -9,14 +9,21 @@ import (
 
 func InfoCommand(section string, replicaPort string) string {
 	log.Println("Info command called with section: ", section)
+
+	infoResultResp := ""
+	masterReplID := "master_replid:8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb\r\n"
+	masterReplOffset := "master_repl_offset:0\r\n"
+	roleInfo := "role:master"
+
 	if strings.ToLower(section) == "replication" {
-		roleInfo := "role:master"
 		if replicaPort != "" {
 			roleInfo = "role:slave"
 		}
-		return resp.WrapBulkStringRESP(roleInfo)
 	}
-	return resp.GetNullBulkStringRESP()
+
+	infoResultResp = roleInfo + "\r\n" + masterReplID + masterReplOffset
+
+	return resp.WrapBulkStringRESP(infoResultResp)
 }
 
 func SetCommand(ans []string) string {

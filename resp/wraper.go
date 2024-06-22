@@ -2,6 +2,7 @@ package resp
 
 import (
 	"strconv"
+	"strings"
 )
 
 func WrapSimpleStringRESP(simpleString string) string {
@@ -13,6 +14,15 @@ func WrapSimpleStringRESP(simpleString string) string {
 
 func WrapBulkStringRESP(s string) string {
 	return "$" + strconv.Itoa(len(s)) + "\r\n" + s + "\r\n"
+}
+
+func WrapArrayRESP(arr []string) string {
+	var builder strings.Builder
+	builder.WriteString("*" + strconv.Itoa(len(arr)) + "\r\n")
+	for _, s := range arr {
+		builder.WriteString(WrapBulkStringRESP(s))
+	}
+	return builder.String()
 }
 
 func GetNullBulkStringRESP() string {

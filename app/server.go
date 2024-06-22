@@ -3,12 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/codecrafters-io/redis-starter-go/resp"
 	"log"
 	"net"
 	"os"
 	"strings"
-
-	"github.com/codecrafters-io/redis-starter-go/resp"
 )
 
 // var listen = flag.String("listen", ":6379", "listen address")
@@ -19,7 +18,36 @@ func main() {
 	fmt.Println("Logs from your program will appear here!")
 
 	flag.Parse()
+	sendHandshake()
 	start()
+}
+
+func sendHandshake() {
+	if *replicaOf != "" {
+		replicaOfHostPort := strings.Split(*replicaOf, " ")
+		replicaOfHost := replicaOfHostPort[0]
+		replicaOfPort := replicaOfHostPort[1]
+
+		conn, err := net.Dial("tcp", replicaOfHost+":"+replicaOfPort)
+		if err != nil {
+			log.Println("Failed to connect to replicaOf", err.Error())
+			os.Exit(1)
+		}
+
+		defer conn.Close()
+		// _, err = conn.Write([]byte(fmt.Sprintf("REPLCONF listening-port %s\r\n", *port)))
+		// if err != nil {
+		// 	log.Println("Failed to send handshake", err.Error())
+		// 	os.Exit(1)
+		// }
+
+		sendPing := []string{"PING"}
+		_, err = conn.Write([]byte(resp.WrapArrayRESP(sendPing)))
+		if err != nil {
+			log.Println("Failed to send handshake", err.Error())
+			os.Exit(1)
+		}
+	}
 }
 
 func start() {
