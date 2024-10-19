@@ -8,8 +8,6 @@ Welcome to my Redis implementation project! 🎉 This repository showcases my jo
 - **📚 RESP Protocol**: Robust implementation of the Redis Serialization Protocol (RESP).
 - **🔒 Thread-Safe Cache**: Utilizes mutex locks to ensure safe concurrent access to the cache.
 - **🔁 Replication**: Set up replicas to distribute your data across multiple instances.
-- **💾 Persistence**: Save your data to disk and restore it on restart.
-- **📢 Pub/Sub Messaging**: Simple publish/subscribe messaging pattern.
 
 ## 🛠️ Getting Started
 
@@ -76,20 +74,6 @@ SMEMBERS myset
 - `SADD`: Adds an element to a set.
 - `SMEMBERS`: Returns all members of a set.
 
-### 📢 Pub/Sub Messaging
-
-```sh
-SUBSCRIBE mychannel
-PUBLISH mychannel "Hello, Redis!"
-```
-
-- `SUBSCRIBE`: Subscribes to a channel to receive messages.
-- `PUBLISH`: Publishes a message to a channel.
-
-### 💾 Persistence
-
-Enable data persistence to save your data to disk and restore it on server restart. This ensures your data is not lost in case of server failure.
-
 ### 🔒 Thread-Safe Cache
 
 To ensure safe concurrent access to the cache, I've used mutex locks. This guarantees that operations on the cache are thread-safe, preventing race conditions and ensuring data integrity.
@@ -122,10 +106,6 @@ The replica will automatically synchronize data from the master server. Any upda
 - [Replication](https://redis.io/topics/replication)
 - [Persistence](https://redis.io/topics/persistence)
 - [Pub/Sub](https://redis.io/topics/pubsub)
-
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/HannahHatem/redis-from-scratch/issues) if you want to contribute.
 
 ## ✨ Acknowledgements
 
